@@ -476,6 +476,8 @@ class Acurite5n1PacketV2(Packet):
             if pkt['rain_total'] is not None:
                 # Convert to inches
                 pkt['rain_total'] /= 25.4
+        elif 'rain_in' in obj:
+            pkt['rain_total'] = Packet.get_float(obj, 'rain_in')
         if 'temperature_F' in obj:
             pkt['temperature'] = Packet.get_float(obj, 'temperature_F')
         elif 'temperature_C' in obj:
@@ -833,11 +835,11 @@ class Acurite00275MPacket(Packet):
         pkt['dateTime'] = Packet.parse_time(obj.get('time'))
         pkt['usUnits'] = weewx.METRIC
         pkt['hardware_id'] = "%04x" % obj.get('id', 0)
-        pkt['probe'] = obj.get('probe')
-        pkt['battery'] = 0 if obj.get('battery') == 'OK' else 1
-        pkt['temperature_probe'] = Packet.get_float(obj, 'ptemperature_C')
+        pkt['battery'] = Packet.get_int(obj, 'battery_ok') # 1 means battery OK, 0 means not low apparently
+        pkt['temperature_probe'] = Packet.get_float(obj, 'temperature_1_C')
         pkt['temperature'] = Packet.get_float(obj, 'temperature_C')
         pkt['humidity'] = Packet.get_float(obj, 'humidity')
+        pkt['humidity_probe'] = Packet.get_float(obj, 'humidity_1')
         return Acurite.insert_ids(pkt, Acurite00275MPacket.__name__)
 
 
@@ -1585,7 +1587,7 @@ class HidekiRainPacket(Packet):
 
     # {"time" : "2017-01-16 04:38:50", "model" : "HIDEKI Rain sensor", "rc" : 0, "channel" : 4, "battery" : "OK", "rain" : 2622.900}
     # {"time" : "2019-11-24 19:13:52", "model" : "HIDEKI Rain sensor", "rc" : 0, "channel" : 4, "battery" : "OK", "rain_mm" : 274.400, "mic" : "CRC"}
-    
+
     IDENTIFIER = "HIDEKI Rain sensor"
     PARSEINFO = {
         'Rolling Code': ['rolling_code', None, lambda x: int(x)],
@@ -2413,7 +2415,7 @@ class TFATwinPlus303049Packet(Packet):
     # Temperature: 8.40 C
     # Humidity: 91 %
 
-    # {"time" : "2019-09-25 17:15:12", "model" : "TFA-Twin-Plus-30.3049", "id" : 13, "channel" : 1, "battery" : "OK", "temperature_C" : 8.400, "humidity" : 91, "mic" : "CHECK  SUM"} 
+    # {"time" : "2019-09-25 17:15:12", "model" : "TFA-Twin-Plus-30.3049", "id" : 13, "channel" : 1, "battery" : "OK", "temperature_C" : 8.400, "humidity" : 91, "mic" : "CHECK  SUM"}
 
     IDENTIFIER = "TFA-Twin-Plus-30.3049"
     PARSEINFO = {
